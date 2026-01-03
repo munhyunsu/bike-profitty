@@ -1,3 +1,154 @@
+# Node.js 가상 환경
+.nodejs/
+
+
+### Gitignore
+### 2025-12-29 수정
+### (OS)
+### - Windows
+### - MacOS
+### - Linux
+### (IDE)
+### - VIM
+### - VSCode
+### - Cursor
+### - XCode
+### (Language)
+### - Node.js
+### - Expo
+### - Android
+
+
+## Windows
+## https://github.com/github/gitignore/blob/main/Global/Windows.gitignore
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Dump file
+*.stackdump
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+
+## MacOS
+## https://github.com/github/gitignore/blob/main/Global/macOS.gitignore
+# General
+.DS_Store
+__MACOSX/
+.AppleDouble
+.LSOverride
+Icon[
+]
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+
+## Linux
+## https://github.com/github/gitignore/blob/main/Global/Linux.gitignore
+*~
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# Metadata left by Dolphin file manager, which comes with KDE Plasma
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+
+# Log files created by default by the nohup command
+nohup.out
+
+
+## VIM
+## https://github.com/github/gitignore/blob/main/Global/Vim.gitignore
+# Swap
+[._]*.s[a-v][a-z]
+# comment out the next line if you don't need vector files
+!*.svg
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Session
+Session.vim
+Sessionx.vim
+
+# Temporary
+.netrwhist
+*~
+# Auto-generated tag files
+tags
+# Persistent undo
+[._]*.un~
+
+
+## VSCode
+## https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+!*.code-workspace
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+
+## Cursor
+## https://github.com/github/gitignore/blob/main/Global/Cursor.gitignore
+.cursorignore
+.cursorindexingignore
+
+
+## XCode
+## https://github.com/github/gitignore/blob/main/Global/Xcode.gitignore
+## User settings
+xcuserdata/
+
+
+## Node.js
+## https://github.com/github/gitignore/blob/main/Node.gitignore
 # Logs
 logs
 *.log
@@ -81,6 +232,7 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+.output
 
 # Gatsby files
 .cache/
@@ -134,6 +286,187 @@ dist
 !.yarn/sdks
 !.yarn/versions
 
-# Vite logs files
+# Vite files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+.vite/
+
+
+## Expo
+## https://github.com/expo/expo/blob/main/.gitignore
+# Expo
+.expo
+__generated__
+web-build
+bare-apps
+
+# macOS
+.DS_Store
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Ruby
+.direnv
+
+# Env
+.envrc.local
+
+# Emacs
+*~
+
+# Vim
+.*.swp
+.*.swo
+.*.swn
+.*.swm
+
+# VS Code
+.vscode/launch.json
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Xcode
+*.pbxuser
+!default.pbxuser
+*.xccheckout
+*.xcscmblueprint
+xcuserdata
+
+# IDEA / Android Studio
+*.iml
+.gradle
+.idea
+
+# Eclipse
+.project
+.settings
+
+# VSCode
+.history/
+/vscode/launch.json
+
+# Android
+*.apk
+*.hprof
+ReactAndroid-temp.aar
+
+# Tools
+jarjar-rules.txt
+
+# Dynamic Macros
+.kernel-ngrok-url
+
+# Template files
+/apps/bare-expo/android/app/google-services.json
+/apps/bare-expo/ios/BareExpo/GoogleService-Info.plist
+
+# Template projects
+templates/**/android/**/generated/*
+templates/**/android/app/build
+templates/**/Pods/**
+templates/**/Podfile.lock
+templates/**/yarn.lock
+templates/expo-template-bare-minimum/*.tgz
+
+# Codemod
+.codemod.bookmark
+
+# Fastlane
+/*.cer
+/fastlane/report.xml
+/fastlane/Preview.html
+/fastlane/Deployment
+/fastlane/test_output
+/Preview.html
+/gc_keys.json
+/fastlane/gc_keys.json
+
+# CI
+/android/logcat.txt
+
+# Shell apps
+android-shell-app
+shellAppBase-*
+shellAppIntermediates
+shellAppWorkspaces
+/artifacts/*
+
+# Expo Client builds
+/client-builds
+
+# Expo web env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+apps/bare-expo/deploy-url.txt
+
+# Temporary files created by Metro to check the health of the file watcher
+.metro-health-check*
+
+# Expo Doc merging
+docs/pages/versions/*/react-native/ADDED_*.md
+docs/pages/versions/*/react-native/REMOVED_*.md
+docs/pages/versions/*/react-native/*.diff
+
+# Expo Go
+/apps/expo-go/src/dist
+
+# Prebuilds
+/packages/**/*.xcframework
+/packages/**/*.spec.json
+/packages/**/Info-generated.plist
+!crsqlite.xcframework
+
+# iOS
+**/ios/.xcode.env.local
+
+# TypeScript state
+tsconfig.tsbuildinfo
+
+# Secrets - contains real secrets fetched from GCP
+/secrets/keys.json
+/secrets/expotools.env
+
+
+## Android
+## https://github.com/github/gitignore/blob/main/Android.gitignore
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Log/OS Files
+*.log
+
+# Android Studio generated files and folders
+captures/
+.externalNativeBuild/
+.cxx/
+*.aab
+*.apk
+output-metadata.json
+
+# IntelliJ
+*.iml
+.idea/
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
+# Android Profiling
+*.hprof
