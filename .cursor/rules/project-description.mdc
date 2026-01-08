@@ -1,0 +1,38 @@
+---
+description: 이 문서는 이 프로젝트의 목적과 API 연결 등의 설명을 나타냅니다. 이 프로젝트는 Expo를 활용하여 React Native로 모바일 애플리케이션을 만듭니다.
+alwaysApply: true
+globs: **/*
+---
+# 출퇴근 관리 모바일 앱
+
+이 문서는 출퇴근 관리 모바일 앱 Bike의 목적 및 백엔드 API를 설명합니다. 문서의 내용을 참고하여 코드를 생성해야합니다.
+
+## 1. 백엔드 API 구조
+
+백엔드 API는 아래와 같이 구성되어있으며 이를 활용하여 앱 동작을 수행한다.
+
+- **API URL**: `https://hrm-backend-1dk5.onrender.com/`
+- **출근 태그**: `POST /api/attendance`
+  - Content-Type: application/json
+  ```json
+  {
+    "nfc_id": "04A1B2C3D4E5F6",
+    "action": "check_in"
+  }
+  ```
+  - **출근 태그**: `POST /api/attendance`
+  - Content-Type: application/json
+  ```json
+  {
+    "nfc_id": "04A1B2C3D4E5F6",
+    "action": "check_out"
+  }
+  ```
+- **상태 확인**: `GET /api/info/{NFCID}`
+
+## 2. 동작 시나리오
+
+2-1. 출근|퇴근 버튼 터치
+2-2. NFC 태그
+2-3. 백엔드에 요청 날린 후 info로 출/퇴근여부 확인 (출퇴근여부는 토글 형태)
+2-4. 응답 JSON 시각화 및 출/퇴근 표시
