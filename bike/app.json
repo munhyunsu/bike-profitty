@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NFCReaderUsageDescription": "출퇴근 관리를 위해 NFC 태그를 읽습니다."
-      }
+      },
+      "bundleIdentifier": "com.anonymous.bike"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +26,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.NFC"
-      ]
+      ],
+      "package": "com.anonymous.bike"
     },
     "web": {
       "output": "static",
@@ -44,11 +46,18 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "react-native-nfc-manager"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ad548852-4548-4d80-abcb-c2e7ad2f50d2"
+      }
     }
   }
 }
