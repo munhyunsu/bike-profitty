@@ -7,17 +7,20 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { useNfc } from '@/src/hooks/use-nfc';
 import { apiService, AttendanceInfo } from '@/src/services/api';
 
 export default function AttendanceScreen() {
-  const { isSupported, isEnabled, isScanning, startScanning, checkNfcSupport } = useNfc();
+  const { isSupported, isEnabled, isScanning, startScanning, stopScanning, checkNfcSupport } = useNfc();
   const [loading, setLoading] = useState<'checkIn' | 'checkOut' | 'status' | null>(null);
   const [attendanceInfo, setAttendanceInfo] = useState<AttendanceInfo | null>(null);
   const [lastNfcId, setLastNfcId] = useState<string | null>(null);
+  const [showScanModal, setShowScanModal] = useState(false);
+  const [scanAction, setScanAction] = useState<'checkIn' | 'checkOut' | 'status' | null>(null);
 
-  const validateNfc = async (): Promise<string | null> => {
+  const validateNfc = async (action: 'checkIn' | 'checkOut' | 'status'): Promise<{ nfc_id: string } | null> => {
     if (!isSupported) {
       Alert.alert('오류', '이 기기는 NFC를 지원하지 않습니다.');
       return null;
@@ -29,37 +32,59 @@ export default function AttendanceScreen() {
       return null;
     }
 
+    // 스캔 모달 표시
+    setScanAction(action);
+    setShowScanModal(true);
+
     try {
-      const nfcId = await startScanning();
+      const nfcData = await startScanning();
+      console.log('nfcData2', nfcData);
+
+      setShowScanModal(false);
+      setScanAction(null);
       
-      if (!nfcId) {
+      if (!nfcData || !nfcData.nfc_id) {
         Alert.alert('오류', 'NFC 태그를 읽을 수 없습니다.');
         return null;
       }
 
-      setLastNfcId(nfcId);
-      return nfcId;
+      setLastNfcId(nfcData.nfc_id);
+      return nfcData;
     } catch (error) {
+      setShowScanModal(false);
+      setScanAction(null);
+      
+      if (error instanceof Error && error.message.includes('취소')) {
+        // 사용자가 취소한 경우는 알림 표시 안 함
+        return null;
+      }
+      
       console.error('NFC scan error:', error);
       Alert.alert('오류', error instanceof Error ? error.message : 'NFC 태그 스캔 중 오류가 발생했습니다.');
       return null;
     }
   };
 
+  const handleCancelScan = async () => {
+    await stopScanning();
+    setShowScanModal(false);
+    setScanAction(null);
+  };
+
   const handleCheckIn = async () => {
-    const nfcId = await validateNfc();
-    if (!nfcId) {
+    const nfcData = await validateNfc('checkIn');
+    if (!nfcData) {
       return;
     }
 
     try {
       setLoading('checkIn');
       
-      // 출근 요청
-      await apiService.checkIn(nfcId);
+      // 출근 요청 (NFC 데이터에 action 추가)
+      await apiService.checkIn(nfcData.nfc_id);
       
       // 상태 확인
-      const info = await apiService.getAttendanceInfo(nfcId);
+      const info = await apiService.getAttendanceInfo(nfcData.nfc_id);
       
       setAttendanceInfo(info);
       Alert.alert('성공', '출근 처리 완료!');
@@ -72,19 +97,19 @@ export default function AttendanceScreen() {
   };
 
   const handleCheckOut = async () => {
-    const nfcId = await validateNfc();
-    if (!nfcId) {
+    const nfcData = await validateNfc('checkOut');
+    if (!nfcData) {
       return;
     }
 
     try {
       setLoading('checkOut');
       
-      // 퇴근 요청
-      await apiService.checkOut(nfcId);
+      // 퇴근 요청 (NFC 데이터에 action 추가)
+      await apiService.checkOut(nfcData.nfc_id);
       
       // 상태 확인
-      const info = await apiService.getAttendanceInfo(nfcId);
+      const info = await apiService.getAttendanceInfo(nfcData.nfc_id);
       
       setAttendanceInfo(info);
       Alert.alert('성공', '퇴근 처리 완료!');
@@ -97,8 +122,8 @@ export default function AttendanceScreen() {
   };
 
   const handleCheckStatus = async () => {
-    const nfcId = await validateNfc();
-    if (!nfcId) {
+    const nfcData = await validateNfc('status');
+    if (!nfcData) {
       return;
     }
 
@@ -106,7 +131,7 @@ export default function AttendanceScreen() {
       setLoading('status');
       
       // 상태 확인만
-      const info = await apiService.getAttendanceInfo(nfcId);
+      const info = await apiService.getAttendanceInfo(nfcData.nfc_id);
       
       setAttendanceInfo(info);
       Alert.alert(
@@ -213,6 +238,32 @@ export default function AttendanceScreen() {
           </View>
         )}
       </View>
+
+      {/* NFC 스캔 모달 */}
+      <Modal
+        visible={showScanModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancelScan}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>태그하세요</Text>
+            <Text style={styles.modalSubtitle}>
+              NFC 태그를 기기에 가까이 대주세요
+            </Text>
+            {isScanning && (
+              <ActivityIndicator size="large" color="#3498db" style={styles.modalSpinner} />
+            )}
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancelScan}
+            >
+              <Text style={styles.cancelButtonText}>취소</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -331,5 +382,52 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    minWidth: 280,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalSpinner: {
+    marginVertical: 20,
+  },
+  cancelButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    backgroundColor: '#e74c3c',
+    minWidth: 120,
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
