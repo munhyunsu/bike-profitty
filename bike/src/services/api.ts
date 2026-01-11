@@ -12,6 +12,56 @@ export interface AttendanceInfo {
   [key: string]: unknown;
 }
 
+export interface Employee {
+  id: number;
+  nfc_id: string;
+  name: string;
+  department: string | null;
+  position: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
+export interface AttendanceRecord {
+  id: number;
+  employee_id: number;
+  nfc_id: string;
+  tag_type: 'check_in' | 'check_out';
+  tag_time: string;
+  created_at: string;
+}
+
+export interface TodayInfo {
+  date: string;
+  records: AttendanceRecord[];
+  check_in: AttendanceRecord | null;
+  check_out: AttendanceRecord | null;
+  is_checked_in: boolean;
+  is_checked_out: boolean;
+}
+
+export interface MonthlyStats {
+  total_days: number;
+  check_in_count: number;
+  check_out_count: number;
+  on_time_count: number;
+  late_count: number;
+}
+
+export interface LastTag {
+  type: 'check_in' | 'check_out';
+  time: string;
+}
+
+export interface AttendanceStatusResponse {
+  success: boolean;
+  employee: Employee;
+  today: TodayInfo;
+  monthly_stats: MonthlyStats;
+  recent_records: AttendanceRecord[];
+  last_tag: LastTag;
+}
+
 export class ApiService {
   private baseUrl: string;
 
@@ -51,7 +101,7 @@ export class ApiService {
     return response.json();
   }
 
-  async getAttendanceInfo(nfcId: string): Promise<AttendanceInfo> {
+  async getAttendanceInfo(nfcId: string): Promise<AttendanceStatusResponse> {
     const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.INFO}/${nfcId}`, {
       method: 'GET',
       headers: {

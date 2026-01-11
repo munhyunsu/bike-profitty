@@ -10,12 +10,13 @@ import {
   Modal,
 } from 'react-native';
 import { useNfc } from '@/src/hooks/use-nfc';
-import { apiService, AttendanceInfo } from '@/src/services/api';
+import { apiService, AttendanceStatusResponse } from '@/src/services/api';
+import { formatDateTime, formatTime } from '@/src/utils/date-format';
 
 export default function AttendanceScreen() {
   const { isSupported, isEnabled, isScanning, startScanning, stopScanning, checkNfcSupport } = useNfc();
   const [loading, setLoading] = useState<'checkIn' | 'checkOut' | 'status' | null>(null);
-  const [attendanceInfo, setAttendanceInfo] = useState<AttendanceInfo | null>(null);
+  const [attendanceInfo, setAttendanceInfo] = useState<AttendanceStatusResponse | null>(null);
   const [lastNfcId, setLastNfcId] = useState<string | null>(null);
   const [showScanModal, setShowScanModal] = useState(false);
   const [scanAction, setScanAction] = useState<'checkIn' | 'checkOut' | 'status' | null>(null);
@@ -134,10 +135,6 @@ export default function AttendanceScreen() {
       const info = await apiService.getAttendanceInfo(nfcData.nfc_id);
       
       setAttendanceInfo(info);
-      Alert.alert(
-        '출퇴근 현황',
-        `현재 상태: ${info.status === 'check_in' ? '출근' : '퇴근'}`,
-      );
     } catch (error) {
       console.error('Status check error:', error);
       Alert.alert('오류', error instanceof Error ? error.message : '상태 확인 중 오류가 발생했습니다.');
@@ -224,16 +221,102 @@ export default function AttendanceScreen() {
 
         {attendanceInfo && (
           <View style={styles.infoContainer}>
-            <Text style={styles.infoLabel}>출퇴근 정보:</Text>
-            <View style={styles.jsonContainer}>
-              <Text style={styles.jsonText}>
-                {JSON.stringify(attendanceInfo, null, 2)}
-              </Text>
+            {/* 직원 정보 */}
+            <View style={styles.employeeCard}>
+              <Text style={styles.employeeName}>{attendanceInfo.employee.name}</Text>
+              {attendanceInfo.employee.department && (
+                <Text style={styles.employeeDetail}>부서: {attendanceInfo.employee.department}</Text>
+              )}
+              {attendanceInfo.employee.position && (
+                <Text style={styles.employeeDetail}>직책: {attendanceInfo.employee.position}</Text>
+              )}
             </View>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusBadgeText}>
-                {attendanceInfo.status === 'check_in' ? '출근' : '퇴근'}
-              </Text>
+
+            {/* 오늘의 출퇴근 상태 */}
+            <View style={styles.todayCard}>
+              <Text style={styles.cardTitle}>오늘 ({attendanceInfo.today.date})</Text>
+              <View style={styles.statusRow}>
+                <View style={[styles.statusBadge, attendanceInfo.today.is_checked_in && styles.statusBadgeActive]}>
+                  <Text style={styles.statusBadgeText}>
+                    {attendanceInfo.today.is_checked_in ? '✓ 출근' : '출근'}
+                  </Text>
+                </View>
+                {attendanceInfo.today.check_in && (
+                  <Text style={styles.timeText}>{formatTime(attendanceInfo.today.check_in.tag_time)}</Text>
+                )}
+              </View>
+              <View style={styles.statusRow}>
+                <View style={[styles.statusBadge, attendanceInfo.today.is_checked_out && styles.statusBadgeActive]}>
+                  <Text style={styles.statusBadgeText}>
+                    {attendanceInfo.today.is_checked_out ? '✓ 퇴근' : '퇴근'}
+                  </Text>
+                </View>
+                {attendanceInfo.today.check_out && (
+                  <Text style={styles.timeText}>{formatTime(attendanceInfo.today.check_out.tag_time)}</Text>
+                )}
+              </View>
+            </View>
+
+            {/* 월간 통계 */}
+            <View style={styles.statsCard}>
+              <Text style={styles.cardTitle}>이번 달 통계</Text>
+              <View style={styles.statsGrid}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{attendanceInfo.monthly_stats.total_days}</Text>
+                  <Text style={styles.statLabel}>근무일</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{attendanceInfo.monthly_stats.check_in_count}</Text>
+                  <Text style={styles.statLabel}>출근</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{attendanceInfo.monthly_stats.check_out_count}</Text>
+                  <Text style={styles.statLabel}>퇴근</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, styles.statValueSuccess]}>
+                    {attendanceInfo.monthly_stats.on_time_count}
+                  </Text>
+                  <Text style={styles.statLabel}>정시출근</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, styles.statValueWarning]}>
+                    {attendanceInfo.monthly_stats.late_count}
+                  </Text>
+                  <Text style={styles.statLabel}>지각</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* 최근 기록 */}
+            {attendanceInfo.recent_records.length > 0 && (
+              <View style={styles.recordsCard}>
+                <Text style={styles.cardTitle}>최근 기록</Text>
+                {attendanceInfo.recent_records.slice(0, 5).map((record) => (
+                  <View key={record.id} style={styles.recordItem}>
+                    <View style={[
+                      styles.recordTypeBadge,
+                      record.tag_type === 'check_in' ? styles.recordTypeCheckIn : styles.recordTypeCheckOut
+                    ]}>
+                      <Text style={styles.recordTypeText}>
+                        {record.tag_type === 'check_in' ? '출근' : '퇴근'}
+                      </Text>
+                    </View>
+                    <Text style={styles.recordTime}>{formatDateTime(record.tag_time)}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* 마지막 태그 */}
+            <View style={styles.lastTagCard}>
+              <Text style={styles.cardTitle}>마지막 태그</Text>
+              <View style={styles.lastTagRow}>
+                <Text style={styles.lastTagType}>
+                  {attendanceInfo.last_tag.type === 'check_in' ? '출근' : '퇴근'}
+                </Text>
+                <Text style={styles.lastTagTime}>{formatDateTime(attendanceInfo.last_tag.time)}</Text>
+              </View>
             </View>
           </View>
         )}
@@ -370,18 +453,153 @@ const styles = StyleSheet.create({
     color: '#333',
     fontFamily: 'monospace',
   },
+  employeeCard: {
+    width: '100%',
+    padding: 15,
+    backgroundColor: '#e8f4f8',
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  employeeName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  employeeDetail: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 3,
+  },
+  todayCard: {
+    width: '100%',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginBottom: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3498db',
+  },
+  statsCard: {
+    width: '100%',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  recordsCard: {
+    width: '100%',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  lastTagCard: {
+    width: '100%',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
   statusBadge: {
-    marginTop: 15,
-    alignSelf: 'flex-start',
-    backgroundColor: '#3498db',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 20,
+    backgroundColor: '#e0e0e0',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 15,
+  },
+  statusBadgeActive: {
+    backgroundColor: '#27ae60',
   },
   statusBadgeText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#333',
+    fontSize: 14,
     fontWeight: '600',
+  },
+  timeText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '600',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  statItem: {
+    width: '30%',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#3498db',
+    marginBottom: 5,
+  },
+  statValueSuccess: {
+    color: '#27ae60',
+  },
+  statValueWarning: {
+    color: '#e74c3c',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+  },
+  recordItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  recordTypeBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginRight: 10,
+  },
+  recordTypeCheckIn: {
+    backgroundColor: '#d4edda',
+  },
+  recordTypeCheckOut: {
+    backgroundColor: '#f8d7da',
+  },
+  recordTypeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333',
+  },
+  recordTime: {
+    fontSize: 14,
+    color: '#666',
+    flex: 1,
+  },
+  lastTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  lastTagType: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#3498db',
+  },
+  lastTagTime: {
+    fontSize: 14,
+    color: '#666',
   },
   modalOverlay: {
     flex: 1,
