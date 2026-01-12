@@ -9,6 +9,7 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNfc } from '@/src/hooks/use-nfc';
 import { apiService, AttendanceStatusResponse } from '@/src/services/api';
 import { formatDateTime, formatTime } from '@/src/utils/date-format';
@@ -144,8 +145,9 @@ export default function AttendanceScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.content}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.content}>
         <Text style={styles.title}>출퇴근 관리</Text>
         
         <View style={styles.statusContainer}>
@@ -347,11 +349,16 @@ export default function AttendanceScreen() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
   container: {
     flexGrow: 1,
     backgroundColor: '#f5f5f5',
