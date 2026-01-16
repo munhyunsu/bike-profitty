@@ -111,12 +111,10 @@ export function useNfc() {
         
         await NfcManager.cancelTechnologyRequest();
         setIsScanning(false);
-        console.log('tag.id return', nfcId);
         return { nfc_id: nfcId };
       }
       
       // 3. 태그 ID도 없는 경우
-      console.log('tag cancel');
       await NfcManager.cancelTechnologyRequest();
       setIsScanning(false);
       return null;
