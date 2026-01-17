@@ -52,7 +52,6 @@ export function useNfc() {
 
       // 1. NDEF 메시지가 있으면 JSON 데이터 읽기 시도
       if (tag.ndefMessage && tag.ndefMessage.length > 0) {
-        console.log('tag.ndefMessage', tag.ndefMessage);
         const ndefRecords = tag.ndefMessage;
         
         for (const record of ndefRecords) {
@@ -85,7 +84,6 @@ export function useNfc() {
       
       // 2. NDEF 메시지가 없거나 JSON을 찾지 못한 경우, 태그 시리얼번호(UID)를 사용
       if (tag.id) {
-        console.log('tag.id', tag.id, 'type:', typeof tag.id);
         let nfcId: string;
         
         // tag.id가 문자열인 경우 (이미 16진수 문자열)
